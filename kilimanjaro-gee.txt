@@ -1,0 +1,226 @@
+//landsat8 20/08/2022 
+var dataset22 = ee.ImageCollection('LANDSAT/LC08/C02/T1_L2')
+    .filterDate('2022-08-19', '2022-08-22');
+// Applies scaling factors.
+function applyScaleFactors(image) {
+  var opticalBands = image.select('SR_B.').multiply(0.0000275).add(-0.2);
+  var thermalBands = image.select('ST_B.*').multiply(0.00341802).add(149.0);
+  return image.addBands(opticalBands, null, true)
+              .addBands(thermalBands, null, true);
+}
+dataset22 = dataset22.map(applyScaleFactors);
+var visualization22 = {
+  bands: ['SR_B4', 'SR_B3', 'SR_B2'],
+  min: 0.0,
+  max: 0.3,
+};
+var clippedDataset22 = dataset22.map(function(image) {
+  return image.clip(roi);
+});
+var clippedDataset22 = clippedDataset22.median();
+Map.addLayer(clippedDataset22, visualization22, 'True Color (22)');
+
+
+//landsat4 3/7/87
+var dataset87 = ee.ImageCollection('LANDSAT/LT05/C02/T1_L2')
+    .filterDate('1987-07-02', '1987-07-04');
+var dataset87 = dataset87.map(applyScaleFactors);
+var visualization87 = {
+  bands: ['SR_B3', 'SR_B2', 'SR_B1'],
+  min: 0.0,
+  max: 0.3,
+};
+var clippedDataset87 = dataset87.map(function(image) {
+  return image.clip(roi87);
+});
+var clippedDataset87 = clippedDataset87.median()
+Map.addLayer(clippedDataset87, visualization87, 'True Color (87)');
+
+//landsat7, 14/9/99
+var dataset99 = ee.ImageCollection('LANDSAT/LE07/C02/T1_L2')
+    .filterDate('1999-09-13', '1999-09-15');
+dataset99 = dataset99.map(applyScaleFactors);
+var clippedDataset99 = dataset99.map(function(image) {
+  return image.clip(roi);
+});
+var clippedDataset99 = clippedDataset99.median();
+var visualization99 = {
+  bands: ['SR_B3', 'SR_B2', 'SR_B1'],
+  min: 0.0,
+  max: 0.3,
+};
+Map.addLayer(clippedDataset99, visualization99, 'True Color (99)');
+
+
+//landsat8 03/08/2016
+var dataset16 = ee.ImageCollection('LANDSAT/LC08/C02/T1_L2')
+    .filterDate('2016-08-02', '2016-08-04');
+dataset16 = dataset16.map(applyScaleFactors);
+var visualization16 = {
+  bands: ['SR_B4', 'SR_B3', 'SR_B2'],
+  min: 0.0,
+  max: 0.3,
+};
+var clippedDataset16 = dataset16.map(function(image) {
+  return image.clip(roi);
+});
+var clippedDataset16 = clippedDataset16.median()
+Map.addLayer(clippedDataset16, visualization16, 'True Color (16)');
+
+//landsat8 23/08/2013
+var dataset13 = ee.ImageCollection('LANDSAT/LC08/C02/T1_L2')
+    .filterDate('2013-08-26', '2013-08-28');
+dataset13 = dataset13.map(applyScaleFactors);
+var visualization13 = {
+  bands: ['SR_B4', 'SR_B3', 'SR_B2'],
+  min: 0.0,
+  max: 0.3,
+};
+var clippedDataset13 = dataset13.map(function(image) {
+  return image.clip(roi);
+});
+var clippedDataset13 = clippedDataset13.median()
+Map.addLayer(clippedDataset13, visualization13, 'True Color (13)');
+
+
+//klasteryzacja 2022
+//merging feature collections
+var newfc = other.merge(snow);
+//create trainging data
+var bands22 = ['SR_B2', 'SR_B3', 'SR_B4', 'SR_B5', 'SR_B6', 'SR_B7'];
+var training22 = clippedDataset22.select(bands22).sampleRegions({
+  collection: newfc,
+  properties: ['landcover'],
+  scale: 30
+});
+var classifier22 = ee.Classifier.smileCart().train({
+  features: training22,
+  classProperty: 'landcover',
+  inputProperties: bands22
+})
+var classified22 = clippedDataset22.select(bands22).classify(classifier22);
+Map.addLayer(classified22, {
+   palette: ['#080808', '#fcfafa'],min:1, max:3,},
+  'classification22');
+  
+//klasteryzacja 1999
+//create trainging data
+var bands99 = ['SR_B1', 'SR_B2', 'SR_B3', 'SR_B4', 'SR_B5', 'SR_B7'];
+var training99 = clippedDataset99.select(bands99).sampleRegions({
+  collection: newfc,
+  properties: ['landcover'],
+  scale: 30
+});
+var classifier99 = ee.Classifier.smileCart().train({
+  features: training99,
+  classProperty: 'landcover',
+  inputProperties: bands99
+})
+var classified99 = clippedDataset99.select(bands99).classify(classifier99);
+Map.addLayer(classified99, {
+   palette: ['#080808', '#fcfafa'],min:1, max:3,},
+  'classification99');
+
+
+//klasteryzacja 2013
+//create trainging data
+var bands13 = ['SR_B2', 'SR_B3', 'SR_B4', 'SR_B5', 'SR_B6', 'SR_B7'];
+var training13 = clippedDataset13.select(bands13).sampleRegions({
+  collection: newfc,
+  properties: ['landcover'],
+  scale: 30
+});
+var classifier13 = ee.Classifier.smileCart().train({
+  features: training13,
+  classProperty: 'landcover',
+  inputProperties: bands13
+})
+var classified13 = clippedDataset13.select(bands13).classify(classifier13);
+Map.addLayer(classified13, {
+   palette: ['#080808', '#fcfafa'],min:1, max:3,},
+  'classification13');
+
+
+//klasteryzacja 2016
+//create trainging data
+var bands16 = ['SR_B2', 'SR_B3', 'SR_B4', 'SR_B5', 'SR_B6', 'SR_B7'];
+var training16 = clippedDataset16.select(bands16).sampleRegions({
+  collection: newfc,
+  properties: ['landcover'],
+  scale: 30
+});
+var classifier16 = ee.Classifier.smileCart().train({
+  features: training16,
+  classProperty: 'landcover',
+  inputProperties: bands16
+})
+var classified16 = clippedDataset16.select(bands16).classify(classifier16);
+Map.addLayer(classified16, {
+   palette: ['#080808', '#fcfafa'],min:1, max:3,},
+  'classification16');
+  
+  
+//klasteryzacja 1987
+var newfc87 = other87.merge(snow87);
+//create trainging dataa
+var bands87 = ['SR_B1', 'SR_B2', 'SR_B3', 'SR_B4', 'SR_B5','SR_B7'];
+var training87 = clippedDataset87.select(bands87).sampleRegions({
+  collection: newfc87,
+  properties: ['landcover'],
+  scale: 30
+});
+var classifier87 = ee.Classifier.smileCart().train({
+  features: training87,
+  classProperty: 'landcover',
+  inputProperties: bands87
+})
+var classified87 = clippedDataset87.select(bands87).classify(classifier87);
+Map.addLayer(classified87, {
+   palette: ['#080808', '#fcfafa'],min:1, max:3,},
+  'classification87');  
+
+//exporty  
+//Export.image.toDrive({
+  //image:classified99,
+  //description: "Klasyfikacja1999",
+  //crs: "EPSG:4326",
+  //region: roi,
+  //maxPixels:8030040147504,
+  //scale: 30,
+//});
+
+//Export.image.toDrive({
+  //image:classified22,
+  //description: "Klasyfikacja2022",
+  //crs: "EPSG:4326",
+  //region: roi,
+  //maxPixels:8030040147504,
+  //scale: 30,
+//});
+
+//Export.image.toDrive({
+  //image:classified13,
+  //description: "Klasyfikacja2013",
+  //crs: "EPSG:4326",
+  //region: roi,
+  //maxPixels:8030040147504,
+  //scale: 30,
+//});
+
+//Export.image.toDrive({
+  //image:classified16,
+  //description: "Klasyfikacja2016",
+  //crs: "EPSG:4326",
+  //region: roi,
+  //maxPixels:8030040147504,
+  //scale: 30,
+//});
+
+//Export.image.toDrive({
+  //image:classified87,
+  //description: "Klasyfikacja1987",
+  //crs: "EPSG:4326",
+  //region: roi,
+  //maxPixels:8030040147504,
+  //scale: 30,
+//});
